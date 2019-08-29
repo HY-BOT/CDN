@@ -14,7 +14,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build && rm -rf ../docs && mv ./build ../docs && git commit -am 'build' && ggpush",
+    "build": "react-scripts build && rm -rf ../docs && mv ./build ../docs && git commit -am 'build' && git push origin master",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
