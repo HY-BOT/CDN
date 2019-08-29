@@ -22,6 +22,7 @@ function App() {
     }
 
     const filePathAndName = `${directory}/${fileName}`;
+    const sha = sha1(fileContent);
     axios({
       url: `https://api.github.com/repos/HY-BOT/CDN/contents/${filePathAndName}`,
       method: 'put',
@@ -31,17 +32,31 @@ function App() {
       data: {
         message: `Upload: ${filePathAndName}`,
         content: fileContent,
-        sha: sha1(fileContent)
+        sha
       }
     })
       .then(res => {
         console.log('res: ', res);
-        const newCDNs = [
-          ...CDNs,
-          `https://cdn.jsdelivr.net/gh/HY-BOT/CDN@master/${filePathAndName}`
-        ];
-        setCDNs(newCDNs);
-        window.localStorage.setItem('cdns', JSON.stringify(newCDNs));
+        const newSha = res.data.content.sha;
+        const newCDNUrl = `https://cdn.jsdelivr.net/gh/HY-BOT/CDN@master/${filePathAndName}`;
+        // let jsdelivr cache this file
+        axios.get(newCDNUrl).then(() => {
+          const newCDNs = [...CDNs, newCDNUrl];
+          setCDNs(newCDNs);
+          window.localStorage.setItem('cdns', JSON.stringify(newCDNs));
+          // delete file
+          axios({
+            url: `https://api.github.com/repos/HY-BOT/CDN/contents/${filePathAndName}`,
+            method: 'delete',
+            headers: {
+              Authorization: `token ${token}`
+            },
+            data: {
+              message: `Delete: ${filePathAndName}`,
+              sha: newSha
+            }
+          });
+        });
       })
       .catch(err => {
         console.log('err: ', err);
